@@ -53,11 +53,17 @@ func New(opt *RouterOptions) *gin.Engine {
 
 	apiV1 := router.Group("/v1")
 	apiV1.POST("/urls/make-short-url", handlerV1.AuthMiddleware, handlerV1.MakeShortUrl)
-	// apiV1.GET("/users/:id", handlerV1.AuthMiddleware("users", "get"), handlerV1.GetUser)
-	// apiV1.POST("/users", handlerV1.AuthMiddleware("users", "create"), handlerV1.CreateUser)
-	// apiV1.GET("/users", handlerV1.AuthMiddleware("users", "get-all"), handlerV1.GetAllUsers)
-	// apiV1.PUT("/users/:id", handlerV1.AuthMiddleware("users", "update"), handlerV1.UpdateUser)
-	// apiV1.DELETE("/users/:id", handlerV1.AuthMiddleware("users", "delete"), handlerV1.DeleteUser)
+	apiV1.GET("/urls/:shorturl", handlerV1.RedirectUrl)
+
+	apiV1.GET("/urls/:id", handlerV1.AuthMiddleware, handlerV1.GetUrl)
+	apiV1.PUT("/urls/:id", handlerV1.AuthMiddleware, handlerV1.UpdateUrl)
+	apiV1.DELETE("/urls/:id", handlerV1.AuthMiddleware, handlerV1.DeleteUrl)
+
+	apiV1.GET("/users/:id", handlerV1.GetUser)
+	apiV1.GET("/users", handlerV1.GetAllUsers)
+	apiV1.PUT("/users/:id", handlerV1.AuthMiddleware, handlerV1.UpdateUser)
+	apiV1.DELETE("/users/:id", handlerV1.AuthMiddleware, handlerV1.DeleteUser)
+	apiV1.GET("/users/email/:email", handlerV1.GetUserByEmail)
 
 	apiV1.POST("/auth/register", handlerV1.Register)
 	apiV1.POST("/auth/verify", handlerV1.Verify)
