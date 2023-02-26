@@ -19,7 +19,7 @@ import (
 // @Tags url
 // @Accept json
 // @Produce json
-// @Param data body models.CreateShortUrlRequest true "Data"
+// @Param data query models.CreateShortUrlRequest true "Data"
 // @Success 200 {object} models.Url
 // @Failure 500 {object} models.ErrorResponse
 // @Failure 400 {object} models.ErrorResponse
@@ -40,6 +40,7 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get authorization payload")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(ErrUnauthorized))
+		return
 	}
 	if req.Duration != "" {
 		duration, err = time.ParseDuration(req.Duration)
@@ -58,7 +59,6 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(ErrInternalServer))
 		return
 	}
-
 	url, err := h.storage.Url().Create(&repo.Url{
 		UserId:      payload.UserID,
 		OriginalUrl: req.OriginalUrl,
@@ -75,14 +75,17 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 }
 
 func parseUrlModel(data *repo.Url) *models.Url {
-	expiresAt := data.ExpiresAt.Format(time.RFC3339)
+	var clicks *int64
+	if data.MaxClicks != 0 {
+		clicks = &data.MaxClicks
+	}
 	return &models.Url{
 		Id:          data.Id,
 		UserId:      data.UserId,
 		OriginalUrl: data.OriginalUrl,
 		HashedUrl:   data.HashedUrl,
-		MaxClicks:   data.MaxClicks,
-		ExpiresAt:   &expiresAt,
+		MaxClicks:   clicks,
+		ExpiresAt:   data.ExpiresAt,
 		CreatedAt:   data.CreatedAt.Format(time.RFC3339),
 	}
 }

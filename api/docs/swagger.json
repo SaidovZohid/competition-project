@@ -147,13 +147,20 @@
                 "summary": "Make short url",
                 "parameters": [
                     {
-                        "description": "Data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.CreateShortUrlRequest"
-                        }
+                        "type": "string",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "max_clicks",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "original_url",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -205,23 +212,6 @@
                     "type": "integer"
                 },
                 "last_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CreateShortUrlRequest": {
-            "type": "object",
-            "required": [
-                "original_url"
-            ],
-            "properties": {
-                "duration": {
-                    "type": "string"
-                },
-                "max_clicks": {
-                    "type": "integer"
-                },
-                "original_url": {
                     "type": "string"
                 }
             }
@@ -331,8 +321,7 @@
         }
     },
     "securityDefinitions": {
-        "Bearer": {
-            "description": "Type \"Bearer\" follows by a space and JWT token typed then.",
+        "ApiKeyAuth": {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

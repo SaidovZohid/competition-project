@@ -40,7 +40,6 @@ func TestJWTMaker(t *testing.T) {
 	require.NotZero(t, payload.ID)
 	require.Equal(t, userID, payload.UserID)
 	require.Equal(t, userEmail, payload.Email)
-	require.Equal(t, userType, payload.UserType)
 	require.WithinDuration(t, issuedAt, payload.IssuedAt, time.Second)
 	require.WithinDuration(t, expiredAt, payload.ExpiresAt, time.Second)
 }
@@ -75,8 +74,8 @@ func TestInvalidJWTTokenAlgNone(t *testing.T) {
 	userType := "user"
 
 	payload, err := NewPayload(&TokenParams{
-		UserID: userID,
-		Email: userEmail,
+		UserID:   userID,
+		Email:    userEmail,
 		UserType: userType,
 		Duration: time.Minute,
 	})

@@ -15,17 +15,6 @@ definitions:
       last_name:
         type: string
     type: object
-  models.CreateShortUrlRequest:
-    properties:
-      duration:
-        type: string
-      max_clicks:
-        type: integer
-      original_url:
-        type: string
-    required:
-    - original_url
-    type: object
   models.ErrorResponse:
     properties:
       error:
@@ -186,12 +175,16 @@ paths:
       - application/json
       description: Make your long url short
       parameters:
-      - description: Data
-        in: body
-        name: data
+      - in: query
+        name: duration
+        type: string
+      - in: query
+        name: max_clicks
+        type: integer
+      - in: query
+        name: original_url
         required: true
-        schema:
-          $ref: '#/definitions/models.CreateShortUrlRequest'
+        type: string
       produces:
       - application/json
       responses:
@@ -217,8 +210,7 @@ paths:
       tags:
       - url
 securityDefinitions:
-  Bearer:
-    description: Type "Bearer" follows by a space and JWT token typed then.
+  ApiKeyAuth:
     in: header
     name: Authorization
     type: apiKey
