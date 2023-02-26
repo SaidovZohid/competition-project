@@ -12,6 +12,7 @@ WORKDIR /url-shorter
 RUN mkdir media
 
 COPY --from=builder /url-shorter/main .
+COPY templates ./templates
 
 EXPOSE 8080
 
