@@ -52,8 +52,8 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 	}
 
 	identifier := utils.GenerateShortLink(req.OriginalUrl, strconv.Itoa(int(payload.UserID)))
-	shortURL := fmt.Sprintf("http://localhost%s/%s", h.cfg.HttpPort, identifier)
-	err = h.inMemory.Set(identifier, req.OriginalUrl, duration)
+	shortURL := fmt.Sprintf("http://localhost%s/v1/urls/%s", h.cfg.HttpPort, identifier)
+	err = h.inMemory.Set(shortURL, req.OriginalUrl, duration)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to set url to redis db")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(ErrInternalServer))
@@ -63,7 +63,7 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 		UserId:      payload.UserID,
 		OriginalUrl: req.OriginalUrl,
 		HashedUrl:   shortURL,
-		MaxClicks:   req.MaxClicks,
+		MaxClicks:   &req.MaxClicks,
 	})
 	if err != nil {
 		h.logger.WithError(err).Error("failed create user")
@@ -74,17 +74,53 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, parseUrlModel(url))
 }
 
-func parseUrlModel(data *repo.Url) *models.Url {
-	var clicks *int64
-	if data.MaxClicks != 0 {
-		clicks = &data.MaxClicks
+// @Router /urls/{shorturl} [get]
+// @Summary Redirect short url
+// @Description Redirect url by giving short url to original url
+// @Tags url
+// @Accept json
+// @Param shorturl path string true "ShortUrl"
+// @Success 302 {object} models.Url
+// @Failure 500 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+func (h *handlerV1) RedirectUrl(ctx *gin.Context) {
+	url := fmt.Sprintf("http://localhost%s", h.cfg.HttpPort+ctx.Request.URL.Path)
+	url1, err := h.storage.Url().Get(url)
+	if err != nil {
+		h.logger.WithError(err).Error("failed to get url")
+		ctx.JSON(http.StatusInternalServerError, errorResponse(ErrInternalServer))
+		return
 	}
+	if url1.ExpiresAt != nil {
+		if time.Now().After(*url1.ExpiresAt) {
+			h.logger.WithError(err).Error("time expired")
+			ctx.JSON(http.StatusNotFound, errorResponse(ErrNotFound))
+			return
+		}
+	}
+	if url1.MaxClicks != nil {
+		if *url1.MaxClicks <= 0 {
+			h.logger.WithError(err).Error("max click is over")
+			ctx.JSON(http.StatusNotFound, errorResponse(ErrNotFound))
+			return
+		}
+	}
+	err = h.storage.Url().DecrementClick(url)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(ErrInternalServer))
+		return
+	}
+
+	ctx.Redirect(http.StatusFound, url1.OriginalUrl)
+}
+
+func parseUrlModel(data *repo.Url) *models.Url {
 	return &models.Url{
 		Id:          data.Id,
 		UserId:      data.UserId,
 		OriginalUrl: data.OriginalUrl,
 		HashedUrl:   data.HashedUrl,
-		MaxClicks:   clicks,
+		MaxClicks:   data.MaxClicks,
 		ExpiresAt:   data.ExpiresAt,
 		CreatedAt:   data.CreatedAt.Format(time.RFC3339),
 	}

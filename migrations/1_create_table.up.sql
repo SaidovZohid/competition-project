@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS "urls" (
     "user_id" INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     "original_url" TEXT NOT NULL,
     "hashed_url" VARCHAR NOT NULL,
-    "max_clicks" INT CHECK ("max_clicks" > 0),
+    "max_clicks" INT,
     "expires_at" TIMESTAMP WITH TIME ZONE,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

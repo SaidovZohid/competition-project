@@ -169,6 +169,33 @@ paths:
       summary: Verify email
       tags:
       - auth
+  /urls/{shorturl}:
+    get:
+      consumes:
+      - application/json
+      description: Redirect url by giving short url to original url
+      parameters:
+      - description: ShortUrl
+        in: path
+        name: shorturl
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/models.Url'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Redirect short url
+      tags:
+      - url
   /urls/make-short-url:
     post:
       consumes:

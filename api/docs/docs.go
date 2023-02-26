@@ -199,6 +199,47 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/urls/{shorturl}": {
+            "get": {
+                "description": "Redirect url by giving short url to original url",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "url"
+                ],
+                "summary": "Redirect short url",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ShortUrl",
+                        "name": "shorturl",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Url"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

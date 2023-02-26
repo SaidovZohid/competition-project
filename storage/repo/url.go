@@ -7,7 +7,7 @@ type Url struct {
 	UserId      int64
 	OriginalUrl string
 	HashedUrl   string
-	MaxClicks   int64
+	MaxClicks   *int64
 	ExpiresAt   *time.Time
 	CreatedAt   time.Time
 }

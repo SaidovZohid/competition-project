@@ -13,12 +13,13 @@ import (
 
 func createUrl(t *testing.T) *repo.Url {
 	user := createUser(t)
+	click := int64(100)
 	tm := time.Now().Add(time.Hour * 24)
 	url1 := repo.Url{
 		UserId:      user.Id,
 		OriginalUrl: faker.URL(),
 		HashedUrl:   faker.URL(),
-		MaxClicks:   1000,
+		MaxClicks:   &click,
 		ExpiresAt:   &tm,
 	}
 	url2, err := strg.Url().Create(&url1)
@@ -68,21 +69,15 @@ func TestDeleteUrl(t *testing.T) {
 
 func TestUpdateUrl(t *testing.T) {
 	url := createUrl(t)
+	click := int64(100)
 	url2, err := strg.Url().Update(&repo.Url{
 		Id:        url.Id,
 		UserId:    url.UserId,
 		HashedUrl: faker.URL(),
-		MaxClicks: 100,
+		MaxClicks: &click,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, url2)
-	url3, err := strg.Url().Update(&repo.Url{
-		Id:        url.Id,
-		UserId:    url.UserId,
-		MaxClicks: -1,
-	})
-	require.Error(t, err)
-	require.Nil(t, url3)
 	deleteUser(t, url.UserId)
 }
 

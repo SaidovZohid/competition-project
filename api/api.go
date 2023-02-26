@@ -53,6 +53,7 @@ func New(opt *RouterOptions) *gin.Engine {
 
 	apiV1 := router.Group("/v1")
 	apiV1.POST("/urls/make-short-url", handlerV1.AuthMiddleware, handlerV1.MakeShortUrl)
+	apiV1.GET("/urls/:shorturl", handlerV1.RedirectUrl)
 	// apiV1.GET("/users/:id", handlerV1.AuthMiddleware("users", "get"), handlerV1.GetUser)
 	// apiV1.POST("/users", handlerV1.AuthMiddleware("users", "create"), handlerV1.CreateUser)
 	// apiV1.GET("/users", handlerV1.AuthMiddleware("users", "get-all"), handlerV1.GetAllUsers)

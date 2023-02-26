@@ -28,10 +28,9 @@ func (rd *storageRedis) Set(key, value string, exp time.Duration) error {
 		if err != nil {
 			return err
 		}
-		return nil
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 func (rd *storageRedis) Get(key string) (string, error) {
