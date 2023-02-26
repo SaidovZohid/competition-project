@@ -74,6 +74,98 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, parseUrlModel(url))
 }
 
+
+// @Security ApiKeyAuth
+// @Router /urls/hashed-url{id} [get]
+// @Summary Get url by hashed url
+// @Description Get url by hashed url
+// @Tags url
+// @Accept json
+// @Produce json
+// @Param url path int true "URL"
+// @Success 200 {object} models.Url
+// @Failure 500 {object} models.ErrorResponse
+func (h *handlerV1) GetUrl(c *gin.Context) {
+	url := c.Param("url")
+
+	resp, err := h.storage.Url().Get(url)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, parseUrlModel(resp))
+}
+
+// @Security ApiKeyAuth
+// @Router /user/{id} [delete]
+// @Summary Delete user by id
+// @Description Delete user by id
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param id path int true "ID"
+// @Param user_id path int true "UserID"
+// @Success 201 {object} models.ResponseOK
+// @Failure 500 {object} models.ErrorResponse
+func (h *handlerV1) DeleteUrl(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	user_id, err := strconv.Atoi(c.Param("user_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	err = h.storage.Url().Delete(int64(id), int64(user_id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.ResponseOK{
+		Message: "success",
+	})
+}
+
+// @Security ApiKeyAuth
+// @Router /urls [put]
+// @Summary Update a url
+// @Description Update a url
+// @Tags url
+// @Accept json
+// @Produce json
+// @Param url body models.UpdateUrlRequest true "Url"
+// @Success 201 {object} models.Url
+// @Failure 500 {object} models.ErrorResponse
+func (h *handlerV1) UpdateUrl(c *gin.Context) {
+	var (
+		req models.UpdateUrlRequest
+	)
+
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	resp, err := h.storage.Url().Update(&repo.Url{
+		HashedUrl: req.HashedUrl,
+		MaxClicks: *req.MaxClicks,
+		ExpiresAt: req.ExpiresAt,
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, parseUrlModel(resp))
+}
+
 func parseUrlModel(data *repo.Url) *models.Url {
 	var clicks *int64
 	if data.MaxClicks != 0 {
