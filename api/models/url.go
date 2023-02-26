@@ -15,6 +15,7 @@ type CreateShortUrlRequest struct {
 	OriginalUrl string `json:"original_url" binding:"required"`
 	MaxClicks   int64  `json:"max_clicks"`
 	Duration    string `json:"duration"`
+	CustomUrl   string `json:"custom_url"`
 }
 
 type CreateUrlRequest struct {
