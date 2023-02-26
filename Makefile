@@ -9,8 +9,11 @@ swag-init:
 run:
 	go run cmd/main.go
 
-compose-up:
-	docker compose --env-file ./.env.docker up
+up:
+	docker-compose up -d
+
+down:
+	docker-compose down 
 
 migrate-up:
 	migrate -path migrations -database "$(DB_URL)" -verbose up

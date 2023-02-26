@@ -172,49 +172,6 @@
                 }
             }
         },
-        "/urls/hashed-url{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get url by hashed url",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "url"
-                ],
-                "summary": "Get url by hashed url",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "URL",
-                        "name": "url",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Url"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/urls/make-short-url": {
             "post": {
                 "security": [

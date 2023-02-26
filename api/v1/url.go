@@ -116,28 +116,6 @@ func (h *handlerV1) RedirectUrl(ctx *gin.Context) {
 }
 
 // @Security ApiKeyAuth
-// @Router /urls/hashed-url{id} [get]
-// @Summary Get url by hashed url
-// @Description Get url by hashed url
-// @Tags url
-// @Accept json
-// @Produce json
-// @Param url path int true "URL"
-// @Success 200 {object} models.Url
-// @Failure 500 {object} models.ErrorResponse
-func (h *handlerV1) GetUrl(c *gin.Context) {
-	url := c.Param("url")
-
-	resp, err := h.storage.Url().Get(url)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	c.JSON(http.StatusOK, parseUrlModel(resp))
-}
-
-// @Security ApiKeyAuth
 // @Router /user/{id} [delete]
 // @Summary Delete user by id
 // @Description Delete user by id
