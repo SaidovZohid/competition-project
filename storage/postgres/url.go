@@ -64,7 +64,7 @@ func (ur *urlRepo) Get(url string) (*repo.Url, error) {
 			expires_at,
 			created_at
 		FROM urls
-		WHERE hashed_url LIKE '%s'
+		WHERE hashed_url='%s'
 	`, url)
 
 	var maxClicks sql.NullInt64

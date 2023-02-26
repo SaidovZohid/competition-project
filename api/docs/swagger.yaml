@@ -169,12 +169,58 @@ paths:
       summary: Verify email
       tags:
       - auth
+  /urls/generate-qr-code:
+    post:
+      consumes:
+      - application/json
+      description: Generate QR code to store your url in it
+      parameters:
+      - in: query
+        name: custom_url
+        type: string
+      - in: query
+        name: duration
+        type: string
+      - in: query
+        name: max_clicks
+        type: integer
+      - in: query
+        name: original_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Url'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Generate QR code
+      tags:
+      - url
   /urls/make-short-url:
     post:
       consumes:
       - application/json
       description: Make your long url short
       parameters:
+      - in: query
+        name: custom_url
+        type: string
       - in: query
         name: duration
         type: string

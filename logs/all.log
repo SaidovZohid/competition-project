@@ -5,3 +5,5 @@ time="2023-02-26T21:11:28+05:00" level=error msg="unknown user" func="middleware
 time="2023-02-26T21:11:28+05:00" level=error msg="failed to get authorization payload" func="url.go:41" file="github.com/SaidovZohid/competition-project/api/v1.(*handlerV1).MakeShortUrl()" error="unknown user"
 time="2023-02-26T21:13:07+05:00" level=error msg="unknown user" func="middleware.go:57" file="github.com/SaidovZohid/competition-project/api/v1.(*handlerV1).GetAuthPayload()"
 time="2023-02-26T21:13:07+05:00" level=error msg="failed to get authorization payload" func="url.go:41" file="github.com/SaidovZohid/competition-project/api/v1.(*handlerV1).MakeShortUrl()" error="unknown user"
+time="2023-02-26T21:35:22+05:00" level=fatal msg="error while making token JWT maker" func="main.go:44" file="main.main()" error="invalid key size: must be at least 32 characters"
+time="2023-02-26T23:34:09+05:00" level=error msg="urls are identical" func="url.go:78" file="github.com/SaidovZohid/competition-project/api/v1.(*handlerV1).MakeShortUrl()" error="<nil>"
