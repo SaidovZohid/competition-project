@@ -312,33 +312,6 @@ paths:
       summary: Generate QR code
       tags:
       - url
-  /urls/hashed-url{id}:
-    get:
-      consumes:
-      - application/json
-      description: Get url by hashed url
-      parameters:
-      - description: URL
-        in: path
-        name: url
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Url'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Get url by hashed url
-      tags:
-      - url
   /urls/make-short-url:
     post:
       consumes:

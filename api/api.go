@@ -49,13 +49,10 @@ func New(opt *RouterOptions) *gin.Engine {
 		Logger:     opt.Logger,
 	})
 
-	router.Static("/qr-codes", "./qr-codes")
-
 	apiV1 := router.Group("/v1")
 	apiV1.POST("/urls/make-short-url", handlerV1.AuthMiddleware, handlerV1.MakeShortUrl)
 	apiV1.GET("/urls/:shorturl", handlerV1.RedirectUrl)
 
-	apiV1.GET("/urls/:id", handlerV1.AuthMiddleware, handlerV1.GetUrl)
 	apiV1.PUT("/urls/:id", handlerV1.AuthMiddleware, handlerV1.UpdateUrl)
 	apiV1.DELETE("/urls/:id", handlerV1.AuthMiddleware, handlerV1.DeleteUrl)
 
