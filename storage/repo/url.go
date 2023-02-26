@@ -2,6 +2,15 @@ package repo
 
 import "time"
 
+type UrlStorageI interface {
+	Create(u *Url) (*Url, error)
+	Get(url string) (*Url, error)
+	GetAll(params *GetAllUrlsParams) (*GetAllUrlsResult, error)
+	DecrementClick(url string) error
+	Update(u *Url) (*Url, error)
+	Delete(id, userID int64) error
+}
+
 type Url struct {
 	Id          int64
 	UserId      int64
@@ -22,13 +31,4 @@ type GetAllUrlsParams struct {
 	Page   int32
 	UserID int64
 	Search string
-}
-
-type UrlStorageI interface {
-	Create(u *Url) (*Url, error)
-	Get(url string) (*Url, error)
-	GetAll(params *GetAllUrlsParams) (*GetAllUrlsResult, error)
-	DecrementClick(url string) error
-	Update(u *Url) (*Url, error)
-	Delete(id, userID int64) error
 }
