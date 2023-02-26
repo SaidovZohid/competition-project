@@ -2,17 +2,20 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/SaidovZohid/competition-project/config"
+	"github.com/SaidovZohid/competition-project/pkg/logger"
 	"github.com/SaidovZohid/competition-project/storage"
-	"github.com/redis/go-redis/v9"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
 	cfg := config.Load(".")
+
+	logger.Init()
+	log := logger.GetLogger()
 
 	psqlUrl := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.Postgres.Host,

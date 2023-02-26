@@ -23,11 +23,15 @@ func NewInMemoryStorage(rdb *redis.Client) InMemoryStorageI {
 }
 
 func (rd *storageRedis) Set(key, value string, exp time.Duration) error {
-	err := rd.client.Set(context.Background(), key, value, exp).Err()
-	if err != nil {
-		return err
+	if exp != 0 {
+		err := rd.client.Set(context.Background(), key, value, exp).Err()
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		return nil
 	}
-	return nil
 }
 
 func (rd *storageRedis) Get(key string) (string, error) {

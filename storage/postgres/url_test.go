@@ -12,10 +12,10 @@ func createUrl(t *testing.T) *repo.Url {
 	user := createUser(t)
 
 	url, err := strg.Url().Create(&repo.Url{
-		UserId: user.Id,
+		UserId:      user.Id,
 		OriginalUrl: faker.URL(),
-		HashedUrl: faker.URL(),
-		MaxClicks: faker.RandomUnixTime(),
+		HashedUrl:   faker.URL(),
+		MaxClicks:   faker.RandomUnixTime(),
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, url)
@@ -26,7 +26,7 @@ func createUrl(t *testing.T) *repo.Url {
 func TestGetUrl(t *testing.T) {
 	c := createUrl(t)
 
-	url, err := strg.Url().Get(c.Id)
+	url, err := strg.Url().Get(c.HashedUrl)
 	require.NoError(t, err)
 	require.NotEmpty(t, url)
 }

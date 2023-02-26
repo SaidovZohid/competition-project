@@ -1,18 +1,21 @@
 package config
 
 import (
+	"time"
+
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	HttpPort       string
-	Postgres       PostgresConfig
-	Smtp           Smtp
-	RedisAddr      string
-	AuthSecretKey  string
-	AuthHeaderKey  string
-	AuthPayloadKey string
+	HttpPort            string
+	Postgres            PostgresConfig
+	Smtp                Smtp
+	RedisAddr           string
+	AuthSecretKey       string
+	AuthHeaderKey       string
+	AuthPayloadKey      string
+	AccessTokenDuration time.Duration
 }
 
 type PostgresConfig struct {
@@ -51,6 +54,7 @@ func Load(path string) Config {
 		AuthSecretKey:  conf.GetString("AUTH_SECRET_KEY"),
 		AuthHeaderKey:  conf.GetString("AUTHORIZATION_HEADER_KEY"),
 		AuthPayloadKey: conf.GetString("AUTHORIZATION_PAYLOAD_KEY"),
+		AccessTokenDuration: conf.GetDuration("ACCESS_TOKEN_DURATION"),
 	}
 
 	return cfg
