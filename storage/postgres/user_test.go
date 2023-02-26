@@ -1,6 +1,7 @@
 package postgres_test
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/SaidovZohid/competition-project/pkg/utils"
@@ -30,34 +31,74 @@ func createUser(t *testing.T) *repo.User {
 }
 
 func deleteUser(t *testing.T, id int64) {
-	err := strg.User().DeleteUser(id)
+	err := strg.User().Delete(id)
 	require.NoError(t, err)
+}
+func TestCreateUser(t *testing.T) {
+	u := createUser(t)
+	deleteUser(t, u.Id)
 }
 
 func TestGetUser(t *testing.T) {
 	c := createUser(t)
-
 	user, err := strg.User().Get(c.Id)
 	require.NoError(t, err)
 	require.NotEmpty(t, user)
-}
-
-func TestCreateUser(t *testing.T) {
-	createUser(t)
+	user2, err := strg.User().Get(-1)
+	require.Error(t, err, sql.ErrNoRows)
+	require.Empty(t, user2)
+	deleteUser(t, user.Id)
 }
 
 func TestDeleteUser(t *testing.T) {
 	c := createUser(t)
-
 	deleteUser(t, c.Id)
+	err := strg.User().Delete(-1)
+	require.Error(t, err, sql.ErrNoRows)
 }
 
 func TestGetAllUsers(t *testing.T) {
-	user, err := strg.User().GetAll(&repo.GetAllUsersParams{
-		Limit:  3,
-		Page:   1,
-		Search: "ab",
+	ids := make([]int64, 0)
+	for i := 0; i < 10; i++ {
+		u := createUser(t)
+		ids = append(ids, u.Id)
+	}
+
+	users, err := strg.User().GetAll(&repo.GetAllUsersParams{
+		Limit: 10,
+		Page:  1,
 	})
 	require.NoError(t, err)
-	require.NotEmpty(t, user)
+	require.NotEmpty(t, users)
+	require.GreaterOrEqual(t, users.Count, int32(10))
+	for i := 0; i < 10; i++ {
+		deleteUser(t, ids[i])
+	}
+}
+
+func TestGetByEmail(t *testing.T) {
+	user := createUser(t)
+	user2, err := strg.User().GetByEmail(user.Email)
+	require.NoError(t, err)
+	require.NotEmpty(t, user2)
+	deleteUser(t, user.Id)
+}
+
+func TestUpdateUser(t *testing.T) {
+	user := createUser(t)
+	user2, err := strg.User().Update(&repo.User{
+		Id:        user.Id,
+		FirstName: faker.FirstName(),
+		LastName:  faker.LastName(),
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, user2)
+	deleteUser(t, user.Id)
+	user3, err := strg.User().Update(&repo.User{
+		Id:        user.Id,
+		FirstName: faker.FirstName(),
+		LastName:  faker.LastName(),
+	})
+	require.Error(t, err, sql.ErrNoRows)
+	require.Nil(t, user3)
 }

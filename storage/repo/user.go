@@ -7,8 +7,8 @@ type UserStorageI interface {
 	Get(id int64) (*User, error)
 	GetByEmail(email string) (*User, error)
 	GetAll(params *GetAllUsersParams) (*GetAllUsersResult, error)
-	UpdateUser(u *User) (*User, error)
-	DeleteUser(userId int64) error
+	Update(u *User) (*User, error)
+	Delete(userId int64) error
 }
 
 type User struct {

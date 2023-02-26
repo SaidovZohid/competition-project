@@ -2,7 +2,6 @@ package utils
 
 import (
 	"database/sql"
-	"time"
 )
 
 func NullString(s string) (ns sql.NullString) {

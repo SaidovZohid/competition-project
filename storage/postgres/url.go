@@ -37,7 +37,7 @@ func (ur *urlRepo) Create(url *repo.Url) (*repo.Url, error) {
 		url.OriginalUrl,
 		url.HashedUrl,
 		utils.NullInt64(url.MaxClicks),
-		url.MaxClicks,
+		url.ExpiresAt,
 	)
 
 	err := row.Scan(
@@ -94,13 +94,16 @@ func (ur *urlRepo) GetAll(params *repo.GetAllUrlsParams) (*repo.GetAllUrlsResult
 
 	limit := fmt.Sprintf(" limit %d offset %d ", params.Limit, offset)
 
-	filter := ""
+	filter := " where true "
 	if params.Search != "" {
 		str := "%" + params.Search + "%"
 		filter += fmt.Sprintf(`
-		where original_url ilike '%s' or hashed_url ilike '%s'	`,
+		AND original_url ilike '%s' or hashed_url ilike '%s'	`,
 			str, str,
 		)
+	}
+	if params.UserID != 0 {
+		filter += fmt.Sprintf(" AND user_id = %d ", params.UserID)
 	}
 
 	query := `
@@ -116,7 +119,6 @@ func (ur *urlRepo) GetAll(params *repo.GetAllUrlsParams) (*repo.GetAllUrlsResult
 		` + filter + `
 		ORDER BY created_at desc
 		` + limit
-
 	rows, err := ur.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -159,53 +161,73 @@ func (ur *urlRepo) Update(url *repo.Url) (*repo.Url, error) {
 	var result repo.Url
 
 	query := `
-		update users set
-			user_id=$1,
-			original_url=$2,
-			hashed_url=$3,
-			max_clicks=$4
-			expires_at=$5
-		where id=$6
-		returning id,, user_id, created_at
+		update urls set
+			hashed_url=$1,
+			max_clicks=$2,
+			expires_at=$3
+		where id=$4 and user_id=$5
+		returning 
+			id, 
+			user_id, 
+			original_url,
+			hashed_url,
+			max_clicks,
+			expires_at,
+			created_at
 	`
-
-	row := ur.db.QueryRow(
+	var maxClicks sql.NullInt64
+	err := ur.db.QueryRow(
 		query,
-		url.UserId,
-		url.OriginalUrl,
 		url.HashedUrl,
-		url.MaxClicks,
+		utils.NullInt64(url.MaxClicks),
+		url.ExpiresAt,
 		url.Id,
-	)
-
-	err := row.Scan(
+		url.UserId,
+	).Scan(
 		&result.Id,
+		&result.UserId,
+		&result.OriginalUrl,
+		&result.HashedUrl,
+		&maxClicks,
+		&result.ExpiresAt,
+		&result.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
+	result.MaxClicks = maxClicks.Int64
 
 	return &result, nil
 }
 
-func (ur *urlRepo) Delete(url *repo.Url) (*repo.Url, error) {
-	var result repo.Url
+func (ur *urlRepo) Delete(id, userID int64) error {
+	query := ` delete from urls where id=$1 and user_id=$2 `
 
-	query := `delete from urls
-			where id=$1
-			returning id`
-
-	row := ur.db.QueryRow(
+	res, err := ur.db.Exec(
 		query,
-		url.Id,
-	)
-
-	err := row.Scan(
-		&result.Id,
+		id,
+		userID,
 	)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	if count, _ := res.RowsAffected(); count == 0 {
+		return sql.ErrNoRows
 	}
 
-	return &result, nil
+	return nil
+}
+
+func (ur *urlRepo) DecrementClick(url string) error {
+	query := fmt.Sprintf(" UPDATE urls SET max_clicks = max_clicks - 1 WHERE hashed_url LIKE '%s'", "%"+url+"%")
+
+	res, err := ur.db.Exec(query)
+	if err != nil {
+		return err
+	}
+	if count, _ := res.RowsAffected(); count == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
