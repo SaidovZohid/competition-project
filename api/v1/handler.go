@@ -31,6 +31,7 @@ var (
 	ErrNotAllowed           = errors.New("NOT_ALLOWED")
 	ErrWrongEmailOrPass     = errors.New("wrong email or password")
 	ErrWeakPassword         = errors.New("password must contain at least one small letter, one number and be at least 6 characters long")
+	ErrUrlUnavailable       = errors.New("URL_UNAVAILABLE")
 )
 
 type handlerV1 struct {
@@ -82,6 +83,7 @@ func validateUrlParams(ctx *gin.Context) (*models.CreateShortUrlRequest, error) 
 		OriginalUrl: ctx.Query("original_url"),
 		Duration:    ctx.Query("duration"),
 		MaxClicks:   int64(maxClicks),
+		CustomUrl:   ctx.Query("custom_url"),
 	}, nil
 }
 

@@ -181,6 +181,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/urls/generate-qr-code": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Generate QR code to store your url in it",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "url"
+                ],
+                "summary": "Generate QR code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "custom_url",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "max_clicks",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "original_url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Url"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/urls/make-short-url": {
             "post": {
                 "security": [
@@ -200,6 +269,11 @@ const docTemplate = `{
                 ],
                 "summary": "Make short url",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "name": "custom_url",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "name": "duration",

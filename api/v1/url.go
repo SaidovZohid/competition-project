@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -10,6 +12,7 @@ import (
 	"github.com/SaidovZohid/competition-project/pkg/utils"
 	"github.com/SaidovZohid/competition-project/storage/repo"
 	"github.com/gin-gonic/gin"
+	_ "github.com/skip2/go-qrcode"
 )
 
 // @Security ApiKeyAuth
@@ -35,7 +38,6 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(ErrBadRequest))
 		return
 	}
-
 	payload, err := h.GetAuthPayload(ctx)
 	if err != nil {
 		h.logger.WithError(err).Error("failed to get authorization payload")
@@ -50,20 +52,49 @@ func (h *handlerV1) MakeShortUrl(ctx *gin.Context) {
 			return
 		}
 	}
-
-	identifier := utils.GenerateShortLink(req.OriginalUrl, strconv.Itoa(int(payload.UserID)))
-	shortURL := fmt.Sprintf("http://localhost%s/v1/urls/%s", h.cfg.HttpPort, identifier)
-	err = h.inMemory.Set(shortURL, req.OriginalUrl, duration)
-	if err != nil {
-		h.logger.WithError(err).Error("failed to set url to redis db")
-		ctx.JSON(http.StatusInternalServerError, errorResponse(ErrInternalServer))
-		return
+	var shortUrl string
+	if req.CustomUrl == "" {
+		str := utils.RandomString(6)
+		shortUrl = fmt.Sprintf("http://localhost%s/v1/urls/%s", h.cfg.HttpPort, str)
+		err = h.inMemory.Set(shortUrl, req.OriginalUrl, duration)
+		if err != nil {
+			h.logger.WithError(err).Error("failed to set url to redis db")
+			ctx.JSON(http.StatusInternalServerError, errorResponse(ErrInternalServer))
+			return
+		}
+	} else if req.CustomUrl != "" {
+		customUrl := fmt.Sprintf("http://localhost%s/v1/urls/%s", h.cfg.HttpPort, req.CustomUrl)
+		url, err := h.storage.Url().Get(customUrl)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				shortUrl = fmt.Sprintf("http://localhost%s/v1/urls/%s", h.cfg.HttpPort, req.CustomUrl)
+				err = h.inMemory.Set(customUrl, req.OriginalUrl, duration)
+				if err != nil {
+					h.logger.WithError(err).Error("failed to set url to redis db")
+					ctx.JSON(http.StatusInternalServerError, errorResponse(ErrInternalServer))
+					return
+				}
+			}
+		} else if url.HashedUrl == customUrl {
+			h.logger.WithError(err).Error("urls are identical")
+			ctx.JSON(http.StatusBadRequest, errorResponse(ErrUrlUnavailable))
+			return
+		} else {
+			if err != nil {
+				h.logger.WithError(err).Error("failed to get url")
+				ctx.JSON(http.StatusInternalServerError, errorResponse(ErrInternalServer))
+				return
+			}
+		}
 	}
+
+	expiresAt := time.Now().Add(duration)
 	url, err := h.storage.Url().Create(&repo.Url{
 		UserId:      payload.UserID,
 		OriginalUrl: req.OriginalUrl,
-		HashedUrl:   shortURL,
+		HashedUrl:   shortUrl,
 		MaxClicks:   &req.MaxClicks,
+		ExpiresAt:   &expiresAt,
 	})
 	if err != nil {
 		h.logger.WithError(err).Error("failed create user")
