@@ -182,7 +182,7 @@ func (ur *userRepo) GetByEmail(email string) (*repo.User, error) {
 	return &result, nil
 }
 
-func (ur *userRepo) UpdateUser(user *repo.User) (*repo.User, error) {
+func (ur *userRepo) Update(user *repo.User) (*repo.User, error) {
 	var result repo.User
 
 	query := `
@@ -195,8 +195,8 @@ func (ur *userRepo) UpdateUser(user *repo.User) (*repo.User, error) {
 
 	err := ur.db.QueryRow(
 		query,
-		user.FirstName,
-		user.LastName,
+		utils.NullString(user.FirstName),
+		utils.NullString(user.LastName),
 		user.Id,
 	).Scan(
 		&result.Id,
@@ -210,7 +210,7 @@ func (ur *userRepo) UpdateUser(user *repo.User) (*repo.User, error) {
 	return &result, nil
 }
 
-func (ur *userRepo) DeleteUser(id int64) error {
+func (ur *userRepo) Delete(id int64) error {
 	query := ` DELETE FROM users WHERE id=$1 `
 
 	res, err := ur.db.Exec(
