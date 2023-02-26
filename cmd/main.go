@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	_ "github.com/lib/pq"
 	"github.com/SaidovZohid/competition-project/config"
+	"github.com/SaidovZohid/competition-project/storage"
+	"github.com/redis/go-redis/v9"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
-
 
 func main() {
 	cfg := config.Load(".")
@@ -21,10 +22,15 @@ func main() {
 		cfg.Postgres.Database,
 	)
 
-	_, err := sqlx.Connect("postgres", psqlUrl)
+	psqlConn, err := sqlx.Connect("postgres", psqlUrl)
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	
+	rdb := redis.NewClient(&redis.Options{
+		Addr: cfg.RedisAddr,
+	})
+
+	_ = storage.NewStoragePg(psqlConn)
+	_ = storage.NewInMemoryStorage(rdb)
 }

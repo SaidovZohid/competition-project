@@ -2,6 +2,15 @@ package repo
 
 import "time"
 
+type UserStorageI interface {
+	Create(u *User) (*User, error)
+	Get(id int64) (*User, error)
+	GetByEmail(email string) (*User, error)
+	GetAll(params *GetAllUsersParams) (*GetAllUsersResult, error)
+	UpdateUser(u *User) (*User, error)
+	DeleteUser(userId int64) error
+}
+
 type User struct {
 	Id        int64
 	FirstName string
@@ -22,16 +31,3 @@ type GetAllUsersParams struct {
 	Search string
 }
 
-type UpdatePassword struct {
-	UserId int64
-	Password string
-}
-
-type UserStorageI interface {
-	Create(u *User) (*User, error)
-	Get(id int64) (*User, error)
-	GetByEmail(email string) (*User, error)
-	GetAll(params *GetAllUsersParams) (*GetAllUsersResult, error)
-	UpdateUser(u *User) (*User, error)
-	DeleteUser(u *User) (*User, error)
-}

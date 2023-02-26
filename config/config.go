@@ -6,28 +6,26 @@ import (
 )
 
 type Config struct {
-	HttpPort string
-	Postgres PostgresConfig
-	Smtp Smtp
-	Redis Redis
-	AuthSecretKey string
+	HttpPort       string
+	Postgres       PostgresConfig
+	Smtp           Smtp
+	RedisAddr      string
+	AuthSecretKey  string
+	AuthHeaderKey  string
+	AuthPayloadKey string
 }
 
 type PostgresConfig struct {
-	Host string
-	Port string
-	User string
+	Host     string
+	Port     string
+	User     string
 	Password string
 	Database string
 }
 
 type Smtp struct {
-	Sender string
+	Sender   string
 	Password string
-}
-
-type Redis struct {
-	Addr string
 }
 
 func Load(path string) Config {
@@ -39,7 +37,7 @@ func Load(path string) Config {
 	cfg := Config{
 		HttpPort: conf.GetString("HTTP_PORT"),
 		Postgres: PostgresConfig{
-			Host: conf.GetString("POSTGRES_HOST"),
+			Host:     conf.GetString("POSTGRES_HOST"),
 			Port:     conf.GetString("POSTGRES_PORT"),
 			User:     conf.GetString("POSTGRES_USER"),
 			Password: conf.GetString("POSTGRES_PASSWORD"),
@@ -49,13 +47,11 @@ func Load(path string) Config {
 			Sender:   conf.GetString("SMTP_SENDER"),
 			Password: conf.GetString("SMTP_PASSWORD"),
 		},
-		Redis: Redis{
-			Addr: conf.GetString("REDIS_ADDR"),
-		},
-		AuthSecretKey: conf.GetString("AUTH_SECRET_KEY"),
+		RedisAddr:      conf.GetString("REDIS_ADDR"),
+		AuthSecretKey:  conf.GetString("AUTH_SECRET_KEY"),
+		AuthHeaderKey:  conf.GetString("AUTHORIZATION_HEADER_KEY"),
+		AuthPayloadKey: conf.GetString("AUTHORIZATION_PAYLOAD_KEY"),
 	}
 
 	return cfg
 }
-
-
