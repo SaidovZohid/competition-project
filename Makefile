@@ -28,8 +28,8 @@ proto-gen:
 	rm -rf genproto
 	./scripts/gen-proto.sh ${CURRENT_DIR}
 
-unit-test:
-	go test -v -cover ./storage/postgres/...
+test:
+	go test -v -cover ./...
 
 pull-sub-module:
 	git submodule update --init --recursive

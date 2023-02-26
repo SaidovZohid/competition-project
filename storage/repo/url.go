@@ -20,13 +20,15 @@ type GetAllUrlsResult struct {
 type GetAllUrlsParams struct {
 	Limit  int32
 	Page   int32
+	UserID int64
 	Search string
 }
 
 type UrlStorageI interface {
 	Create(u *Url) (*Url, error)
-	Get(ulr string) (*Url, error)
+	Get(url string) (*Url, error)
 	GetAll(params *GetAllUrlsParams) (*GetAllUrlsResult, error)
+	DecrementClick(url string) error
 	Update(u *Url) (*Url, error)
-	Delete(u *Url) (*Url, error)
+	Delete(id, userID int64) error
 }
