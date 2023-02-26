@@ -87,14 +87,14 @@ func (h *handlerV1) GetUserByEmail(c *gin.Context) {
 }
 
 // @Security ApiKeyAuth
-// @Router /user/{id} [delete]
+// @Router /users/{id} [delete]
 // @Summary Delete user by id
 // @Description Delete user by id
 // @Tags user
 // @Accept json
 // @Produce json
 // @Param id path int true "ID"
-// @Success 201 {object} models.ResponseO
+// @Success 201 {object} models.ResponseOK
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) DeleteUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))

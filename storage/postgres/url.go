@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/SaidovZohid/competition-project/pkg/utils"
 	"github.com/SaidovZohid/competition-project/storage/repo"
 	"github.com/jmoiron/sqlx"
 )
@@ -30,13 +29,15 @@ func (ur *urlRepo) Create(url *repo.Url) (*repo.Url, error) {
 		) values ($1, $2, $3, $4, $5)
 		returning id, created_at
 	`
-
+	if *url.MaxClicks == 0 {
+		url.MaxClicks = nil
+	}
 	row := ur.db.QueryRow(
 		query,
 		url.UserId,
 		url.OriginalUrl,
 		url.HashedUrl,
-		utils.NullInt64(url.MaxClicks),
+		url.MaxClicks,
 		url.ExpiresAt,
 	)
 
@@ -67,20 +68,18 @@ func (ur *urlRepo) Get(url string) (*repo.Url, error) {
 		WHERE hashed_url LIKE '%s'
 	`, url)
 
-	var maxClicks sql.NullInt64
 	err := ur.db.QueryRow(query).Scan(
 		&result.Id,
 		&result.UserId,
 		&result.OriginalUrl,
 		&result.HashedUrl,
-		&maxClicks,
+		&result.MaxClicks,
 		&result.ExpiresAt,
 		&result.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
-	result.MaxClicks = maxClicks.Int64
 
 	return &result, nil
 }
@@ -128,22 +127,20 @@ func (ur *urlRepo) GetAll(params *repo.GetAllUrlsParams) (*repo.GetAllUrlsResult
 
 	for rows.Next() {
 		var (
-			u         repo.Url
-			maxClicks sql.NullInt64
+			u repo.Url
 		)
 		err := rows.Scan(
 			&u.Id,
 			&u.UserId,
 			&u.OriginalUrl,
 			&u.HashedUrl,
-			&maxClicks,
+			&u.MaxClicks,
 			&u.ExpiresAt,
 			&u.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
-		u.MaxClicks = maxClicks.Int64
 
 		result.Urls = append(result.Urls, &u)
 	}
@@ -175,11 +172,10 @@ func (ur *urlRepo) Update(url *repo.Url) (*repo.Url, error) {
 			expires_at,
 			created_at
 	`
-	var maxClicks sql.NullInt64
 	err := ur.db.QueryRow(
 		query,
 		url.HashedUrl,
-		utils.NullInt64(url.MaxClicks),
+		url.MaxClicks,
 		url.ExpiresAt,
 		url.Id,
 		url.UserId,
@@ -188,14 +184,13 @@ func (ur *urlRepo) Update(url *repo.Url) (*repo.Url, error) {
 		&result.UserId,
 		&result.OriginalUrl,
 		&result.HashedUrl,
-		&maxClicks,
+		&result.MaxClicks,
 		&result.ExpiresAt,
 		&result.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
-	result.MaxClicks = maxClicks.Int64
 
 	return &result, nil
 }

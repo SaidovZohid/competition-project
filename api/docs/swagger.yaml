@@ -15,28 +15,6 @@ definitions:
       last_name:
         type: string
     type: object
-  models.CreateUserRequest:
-    properties:
-      email:
-        type: string
-      first_name:
-        maxLength: 30
-        minLength: 2
-        type: string
-      last_name:
-        maxLength: 30
-        minLength: 2
-        type: string
-      password:
-        maxLength: 16
-        minLength: 6
-        type: string
-    required:
-    - email
-    - first_name
-    - last_name
-    - password
-    type: object
   models.ErrorResponse:
     properties:
       error:
@@ -89,6 +67,15 @@ definitions:
     properties:
       message:
         type: string
+    type: object
+  models.UpdateUrlRequest:
+    properties:
+      expires_at:
+        type: string
+      hashed_url:
+        type: string
+      max_clicks:
+        type: integer
     type: object
   models.UpdateUserRequest:
     properties:
@@ -227,6 +214,88 @@ paths:
       summary: Verify email
       tags:
       - auth
+  /urls:
+    put:
+      consumes:
+      - application/json
+      description: Update a url
+      parameters:
+      - description: Url
+        in: body
+        name: url
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUrlRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Url'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a url
+      tags:
+      - url
+  /urls/{shorturl}:
+    get:
+      consumes:
+      - application/json
+      description: Redirect url by giving short url to original url
+      parameters:
+      - description: ShortUrl
+        in: path
+        name: shorturl
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/models.Url'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Redirect short url
+      tags:
+      - url
+  /urls/hashed-url{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get url by hashed url
+      parameters:
+      - description: URL
+        in: path
+        name: url
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Url'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get url by hashed url
+      tags:
+      - url
   /urls/make-short-url:
     post:
       consumes:
@@ -278,20 +347,25 @@ paths:
         name: id
         required: true
         type: integer
+      - description: UserID
+        in: path
+        name: user_id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/models.ResponseOK'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       security:
       - ApiKeyAuth: []
-      summary: delete user by id
+      summary: Delete user by id
       tags:
       - user
   /users:
@@ -327,33 +401,6 @@ paths:
       summary: Get all users
       tags:
       - user
-    post:
-      consumes:
-      - application/json
-      description: Create a user
-      parameters:
-      - description: User
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/models.CreateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/models.User'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Create a user
-      tags:
-      - user
     put:
       consumes:
       - application/json
@@ -382,6 +429,32 @@ paths:
       tags:
       - user
   /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ResponseOK'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user by id
+      tags:
+      - user
     get:
       consumes:
       - application/json
