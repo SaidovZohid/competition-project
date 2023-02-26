@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 
+	"github.com/SaidovZohid/competition-project/api"
 	"github.com/SaidovZohid/competition-project/config"
 	"github.com/SaidovZohid/competition-project/pkg/logger"
+	"github.com/SaidovZohid/competition-project/pkg/token"
 	"github.com/SaidovZohid/competition-project/storage"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -34,6 +36,22 @@ func main() {
 		Addr: cfg.RedisAddr,
 	})
 
-	_ = storage.NewStoragePg(psqlConn)
-	_ = storage.NewInMemoryStorage(rdb)
+	strg := storage.NewStoragePg(psqlConn)
+	inMemory := storage.NewInMemoryStorage(rdb)
+
+	tMaker, err := token.NewJWTMaker(cfg.AuthSecretKey)
+	if err != nil {
+		log.WithError(err).Fatal("error while making token JWT maker")
+	}
+	api := api.New(&api.RouterOptions{
+		Cfg:        &cfg,
+		Storage:    strg,
+		InMemory:   inMemory,
+		TokenMaker: tMaker,
+		Logger:     &log,
+	})
+
+	if err := api.Run(cfg.HttpPort); err != nil {
+		log.WithError(err).Fatal("error while running server")
+	}
 }

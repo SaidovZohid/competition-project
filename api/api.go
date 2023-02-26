@@ -24,14 +24,14 @@ type RouterOptions struct {
 	Logger     *logging.Logger
 }
 
+// @Security ApiKeyAuth
 // New @title           Swagger doc for test taking website api
 // @version         1.0
 // @description     This is a api Swagger Doc.
 // @BasePath  /v1
-// @securityDefinitions.apikey Bearer
+// @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
-// @description Type "Bearer" follows by a space and JWT token typed then.
 func New(opt *RouterOptions) *gin.Engine {
 	router := gin.Default()
 
@@ -52,7 +52,7 @@ func New(opt *RouterOptions) *gin.Engine {
 	router.Static("/qr-codes", "./qr-codes")
 
 	apiV1 := router.Group("/v1")
-	apiV1.POST("/urls/make-short-url", handlerV1.AuthMiddleware, handlerV1.MakeShortUrl) 
+	apiV1.POST("/urls/make-short-url", handlerV1.AuthMiddleware, handlerV1.MakeShortUrl)
 	// apiV1.GET("/users/:id", handlerV1.AuthMiddleware("users", "get"), handlerV1.GetUser)
 	// apiV1.POST("/users", handlerV1.AuthMiddleware("users", "create"), handlerV1.CreateUser)
 	// apiV1.GET("/users", handlerV1.AuthMiddleware("users", "get-all"), handlerV1.GetAllUsers)
