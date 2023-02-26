@@ -67,7 +67,7 @@ func errorResponse(err error) *models.ErrorResponse {
 
 func validateUrlParams(ctx *gin.Context) (*models.CreateShortUrlRequest, error) {
 	var (
-		maxClicks int = 1
+		maxClicks int = 0
 		err       error
 	)
 

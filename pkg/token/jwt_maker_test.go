@@ -74,8 +74,8 @@ func TestInvalidJWTTokenAlgNone(t *testing.T) {
 	userType := "user"
 
 	payload, err := NewPayload(&TokenParams{
-		UserID: userID,
-		Email: userEmail,
+		UserID:   userID,
+		Email:    userEmail,
 		UserType: userType,
 		Duration: time.Minute,
 	})
