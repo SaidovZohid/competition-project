@@ -8,7 +8,7 @@ type Url struct {
 	OriginalUrl string
 	HashedUrl   string
 	MaxClicks   int64
-	ExpiresAt   time.Time
+	ExpiresAt   *time.Time
 	CreatedAt   time.Time
 }
 
@@ -25,7 +25,7 @@ type GetAllUrlsParams struct {
 
 type UrlStorageI interface {
 	Create(u *Url) (*Url, error)
-	Get(id int64) (*Url, error)
+	Get(ulr string) (*Url, error)
 	GetAll(params *GetAllUrlsParams) (*GetAllUrlsResult, error)
 	Update(u *Url) (*Url, error)
 	Delete(u *Url) (*Url, error)

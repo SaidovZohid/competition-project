@@ -1,8 +1,10 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 
+	"github.com/SaidovZohid/competition-project/pkg/utils"
 	"github.com/SaidovZohid/competition-project/storage/repo"
 	"github.com/jmoiron/sqlx"
 )
@@ -23,8 +25,9 @@ func (ur *urlRepo) Create(url *repo.Url) (*repo.Url, error) {
 			user_id,
 			original_url,
 			hashed_url,
-			max_clicks
-		) values ($1, $2, $3, $4)
+			max_clicks,
+			expires_at
+		) values ($1, $2, $3, $4, $5)
 		returning id, created_at
 	`
 
@@ -33,6 +36,7 @@ func (ur *urlRepo) Create(url *repo.Url) (*repo.Url, error) {
 		url.UserId,
 		url.OriginalUrl,
 		url.HashedUrl,
+		utils.NullInt64(url.MaxClicks),
 		url.MaxClicks,
 	)
 
@@ -47,33 +51,36 @@ func (ur *urlRepo) Create(url *repo.Url) (*repo.Url, error) {
 	return url, nil
 }
 
-func (ur *urlRepo) Get(id int64) (*repo.Url, error) {
+func (ur *urlRepo) Get(url string) (*repo.Url, error) {
 	var result repo.Url
 
-	query := `
+	query := fmt.Sprintf(`
 		SELECT
 			id,
 			user_id,
 			original_url,
 			hashed_url,
 			max_clicks,
+			expires_at,
 			created_at
 		FROM urls
-		WHERE id=$1
-	`
+		WHERE hashed_url LIKE '%s'
+	`, url)
 
-	row := ur.db.QueryRow(query, id)
-	err := row.Scan(
+	var maxClicks sql.NullInt64
+	err := ur.db.QueryRow(query).Scan(
 		&result.Id,
 		&result.UserId,
 		&result.OriginalUrl,
 		&result.HashedUrl,
-		&result.MaxClicks,
+		&maxClicks,
+		&result.ExpiresAt,
 		&result.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
+	result.MaxClicks = maxClicks.Int64
 
 	return &result, nil
 }
@@ -103,6 +110,7 @@ func (ur *urlRepo) GetAll(params *repo.GetAllUrlsParams) (*repo.GetAllUrlsResult
 			original_url,
 			hashed_url,
 			max_clicks,
+			expires_at,
 			created_at
 		FROM urls
 		` + filter + `
@@ -117,19 +125,23 @@ func (ur *urlRepo) GetAll(params *repo.GetAllUrlsParams) (*repo.GetAllUrlsResult
 	defer rows.Close()
 
 	for rows.Next() {
-		var u repo.Url
-
+		var (
+			u         repo.Url
+			maxClicks sql.NullInt64
+		)
 		err := rows.Scan(
 			&u.Id,
 			&u.UserId,
 			&u.OriginalUrl,
 			&u.HashedUrl,
-			&u.MaxClicks,
+			&maxClicks,
+			&u.ExpiresAt,
 			&u.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
+		u.MaxClicks = maxClicks.Int64
 
 		result.Urls = append(result.Urls, &u)
 	}
@@ -146,14 +158,16 @@ func (ur *urlRepo) GetAll(params *repo.GetAllUrlsParams) (*repo.GetAllUrlsResult
 func (ur *urlRepo) Update(url *repo.Url) (*repo.Url, error) {
 	var result repo.Url
 
-	query := `update users set
-				user_id=$1,
-				original_url=$2,
-				hashed_url=$3,
-				max_clicks=$4
-			where id=$5
-			returning id
-			`
+	query := `
+		update users set
+			user_id=$1,
+			original_url=$2,
+			hashed_url=$3,
+			max_clicks=$4
+			expires_at=$5
+		where id=$6
+		returning id,, user_id, created_at
+	`
 
 	row := ur.db.QueryRow(
 		query,

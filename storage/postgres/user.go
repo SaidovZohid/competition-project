@@ -1,8 +1,10 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 
+	"github.com/SaidovZohid/competition-project/pkg/utils"
 	"github.com/SaidovZohid/competition-project/storage/repo"
 	"github.com/jmoiron/sqlx"
 )
@@ -28,15 +30,13 @@ func (ur *userRepo) Create(user *repo.User) (*repo.User, error) {
 		returning id, created_at
 	`
 
-	row := ur.db.QueryRow(
+	err := ur.db.QueryRow(
 		query,
-		user.FirstName,
-		user.LastName,
+		utils.NullString(user.FirstName),
+		utils.NullString(user.LastName),
 		user.Email,
 		user.Password,
-	)
-
-	err := row.Scan(
+	).Scan(
 		&user.Id,
 		&user.CreatedAt,
 	)
@@ -56,24 +56,26 @@ func (ur *userRepo) Get(id int64) (*repo.User, error) {
 			first_name,
 			last_name,
 			email,
-			password,
 			created_at
 		FROM users
 		WHERE id=$1
 	`
-
+	var (
+		firstName, lastName sql.NullString
+	)
 	row := ur.db.QueryRow(query, id)
 	err := row.Scan(
 		&result.Id,
-		&result.FirstName,
-		&result.LastName,
+		&firstName,
+		&lastName,
 		&result.Email,
-		&result.Password,
 		&result.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
+	result.FirstName = firstName.String
+	result.LastName = lastName.String
 
 	return &result, nil
 }
@@ -85,13 +87,13 @@ func (ur *userRepo) GetAll(params *repo.GetAllUsersParams) (*repo.GetAllUsersRes
 
 	offset := (params.Page - 1) * params.Limit
 
-	limit := fmt.Sprintf(" limit %d offset %d ", params.Limit, offset)
+	limit := fmt.Sprintf(" LIMIT %d OFFSET %d ", params.Limit, offset)
 
 	filter := ""
 	if params.Search != "" {
 		str := "%" + params.Search + "%"
 		filter += fmt.Sprintf(`
-		where first_name ilike '%s' or last_name ilike '%s' or email ilike '%s'	`,
+		WHERE first_name ILIKE '%s' OR last_name ILIKE '%s' OR email ILIKE '%s'	`,
 			str, str, str,
 		)
 	}
@@ -102,7 +104,6 @@ func (ur *userRepo) GetAll(params *repo.GetAllUsersParams) (*repo.GetAllUsersRes
 			first_name,
 			last_name,
 			email,
-			password,
 			created_at
 		FROM users
 		` + filter + `
@@ -115,7 +116,9 @@ func (ur *userRepo) GetAll(params *repo.GetAllUsersParams) (*repo.GetAllUsersRes
 	}
 
 	defer rows.Close()
-
+	var (
+		firstName, lastName sql.NullString
+	)
 	for rows.Next() {
 		var u repo.User
 
@@ -124,13 +127,13 @@ func (ur *userRepo) GetAll(params *repo.GetAllUsersParams) (*repo.GetAllUsersRes
 			&u.FirstName,
 			&u.LastName,
 			&u.Email,
-			&u.Password,
 			&u.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
-
+		u.FirstName = firstName.String
+		u.LastName = lastName.String
 		result.Users = append(result.Users, &u)
 	}
 
@@ -158,13 +161,46 @@ func (ur *userRepo) GetByEmail(email string) (*repo.User, error) {
 		where email=$1
 	`
 
+	var (
+		firstName, lastName sql.NullString
+	)
 	row := ur.db.QueryRow(query, email)
 	err := row.Scan(
 		&result.Id,
-		&result.FirstName,
-		&result.LastName,
+		&firstName,
+		&lastName,
 		&result.Email,
 		&result.Password,
+		&result.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	result.FirstName = firstName.String
+	result.LastName = lastName.String
+
+	return &result, nil
+}
+
+func (ur *userRepo) UpdateUser(user *repo.User) (*repo.User, error) {
+	var result repo.User
+
+	query := `
+		UPDATE users SET
+			first_name=$1,
+			last_name=$2
+		WHERE id=$3
+		RETURNING id, email, created_at
+	`
+
+	err := ur.db.QueryRow(
+		query,
+		user.FirstName,
+		user.LastName,
+		user.Id,
+	).Scan(
+		&result.Id,
+		&result.Email,
 		&result.CreatedAt,
 	)
 	if err != nil {
@@ -174,66 +210,18 @@ func (ur *userRepo) GetByEmail(email string) (*repo.User, error) {
 	return &result, nil
 }
 
-func (ur *userRepo) UpdatePassword(req *repo.UpdatePassword) error {
-	query := ` UPDATE users SET password=$1 WHERE id=$2 `
+func (ur *userRepo) DeleteUser(id int64) error {
+	query := ` DELETE FROM users WHERE id=$1 `
 
-	_, err := ur.db.Exec(query, req.Password, req.UserId)
+	res, err := ur.db.Exec(
+		query,
+		id,
+	)
 	if err != nil {
 		return err
 	}
-
+	if count, _ := res.RowsAffected(); count == 0 {
+		return sql.ErrNoRows
+	}
 	return nil
-}
-
-func (ur *userRepo) UpdateUser(user *repo.User) (*repo.User, error) {
-	var result repo.User
-
-	query := `update users set
-				first_name=$1,
-				last_name=$2,
-				email=$3,
-				password=$4,
-			where id=$5
-			returning id
-			`
-
-	row := ur.db.QueryRow(
-		query,
-		user.FirstName,
-		user.LastName,
-		user.Email,
-		user.Password,
-		user.Id,
-	)
-
-	err := row.Scan(
-		&result.Id,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &result, nil
-}
-
-func (ur *userRepo) DeleteUser(user *repo.User) (*repo.User, error) {
-	var result repo.User
-
-	query := `delete from users
-			where id=$1
-			returning id`
-
-	row := ur.db.QueryRow(
-		query,
-		user.Id,
-	)
-
-	err := row.Scan(
-		&result.Id,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &result, nil
 }
