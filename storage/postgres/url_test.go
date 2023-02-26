@@ -60,6 +60,7 @@ func TestGetUrl(t *testing.T) {
 func TestDeleteUrl(t *testing.T) {
 	url := createUrl(t)
 	deleteUrl(t, url.Id, url.UserId)
+	deleteUser(t, url.UserId)
 	url = createUrl(t)
 	err := strg.Url().Delete(-1, url.UserId)
 	require.Error(t, err, sql.ErrNoRows)
